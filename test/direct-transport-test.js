@@ -4,6 +4,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 var chai = require('chai');
 var expect = chai.expect;
+var sinon = require('sinon');
 var directTransport = require('../src/direct-transport');
 var simplesmtp = require('simplesmtp');
 chai.Assertion.includeStack = true;
@@ -131,6 +132,32 @@ describe('SMTP Transport Tests', function() {
         }, function(err) {
             expect(err).to.exist;
             expect(err.errors[0].recipients).to.deep.equal(['test@[127.0.0.1]', 'test2@[127.0.0.1]']);
+            done();
+        });
+    });
+
+    it('should proxy error events triggered by the message stream', function(done) {
+        var client = directTransport({
+            port: PORT_NUMBER,
+            debug: false,
+            retryDelay: 1000
+        });
+        var streamError = new Error('stream read error');
+        var messageString = 'test';
+        var message = new MockBuilder({
+            from: 'test@[127.0.0.1]',
+            to: ['test@[127.0.0.1]']
+        }, messageString, streamError);
+
+        var errorSpy = sinon.spy();
+        client.on('error', errorSpy);
+
+        client.send({
+            data: {},
+            message: message
+        }, function(err) {
+            expect(err).to.not.exist;
+            expect(errorSpy.callCount).to.equal(1);
             done();
         });
     });
