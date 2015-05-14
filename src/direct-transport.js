@@ -285,7 +285,10 @@ DirectMailer.prototype._process = function(exchange, data, callback) {
     });
 
     var sendMessage = function() {
-        connection.send(data.envelope, data.message.createReadStream(), function(err, info) {
+        var messageReadStream = data.message.createReadStream();
+        messageReadStream.on('error', this.emit.bind(this, 'error'));
+
+        connection.send(data.envelope, messageReadStream, function(err, info) {
             if (returned) {
                 return;
             }
@@ -299,7 +302,7 @@ DirectMailer.prototype._process = function(exchange, data, callback) {
             info.messageId = (data.message.getHeader('message-id') || '').replace(/[<>\s]/g, '');
             return callback(null, info);
         });
-    };
+    }.bind(this);
 
     connection.connect(function() {
         if (returned) {
