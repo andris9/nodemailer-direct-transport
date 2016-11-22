@@ -54,6 +54,7 @@ Send callback includes the following arguments
       * **info.pending[].recipients** an array of recipient addresses that are still pending
       * **info.pending[].response** Response from the SMTP server
     * **info.errors** An array of errors (for these exhanges that rejected mail)
+    * **info.response**  is a string returned by SMTP transports and includes the last SMTP response from the server
 
 ## Issues
 
